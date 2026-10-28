@@ -56,6 +56,22 @@ def test_no_coupon_means_zero_discount(api):
     assert body["discount"] == 0
 
 
+def test_cancel_releases_coupon(api):
+    """取消订单后，优惠券应回到未使用状态（用户可再用）。"""
+    order = make_order(api, "SKU-1001", 1, coupon="C10")
+    assert_ok(api.cancel(order["order_id"]))
+    body = assert_ok(api.create_order("SKU-1001", 1, coupon="C10"), 201)
+    assert body["discount"] == 1000
+
+
+def test_expire_releases_coupon(api):
+    """超时关单后，优惠券同样应释放。"""
+    order = make_order(api, "SKU-1001", 1, coupon="C10")
+    assert_ok(api.sweep(order["created_at"] + 901))
+    body = assert_ok(api.create_order("SKU-1001", 1, coupon="C10"), 201)
+    assert body["discount"] == 1000
+
+
 def test_paid_then_coupon_still_used(api):
     """已支付订单用过的券也不能再用。"""
     order = make_order(api, "SKU-1001", 1, coupon="C10", pay=True)

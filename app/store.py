@@ -68,6 +68,15 @@ class Store:
             }
         )
 
+    def _release_coupon(self, order: dict[str, Any]) -> None:
+        """订单未成交（取消/超时）时释放优惠券，保证占用与释放对称。
+
+        对应缺陷 DEF-001：原先只返还库存，券被永久占用。
+        """
+        code = order.get("coupon")
+        if code and code in self.coupons:
+            self.coupons[code]["used"] = False
+
     # ---------- 查询 ----------
     def get_product(self, sku: str) -> dict[str, Any]:
         product = self.products.get(sku)
@@ -166,6 +175,7 @@ class Store:
             order["status"] = "CANCELLED"
             self.products[order["sku"]]["stock"] += order["qty"]
             self._log(order["sku"], order["qty"], "ORDER_CANCELLED", order_id)
+            self._release_coupon(order)
             return dict(order)
 
     # ---------- 超时扫描 ----------
@@ -180,6 +190,7 @@ class Store:
                     order["status"] = "EXPIRED"
                     self.products[order["sku"]]["stock"] += order["qty"]
                     self._log(order["sku"], order["qty"], "ORDER_EXPIRED", order["order_id"])
+                    self._release_coupon(order)
                     expired.append(order["order_id"])
         return expired
 
