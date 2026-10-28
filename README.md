@@ -68,3 +68,7 @@ python -m venv .venv
 
 被测系统是本项目自带的演示服务，目的是提供一个可控对象来演练复杂测试场景（超卖、幂等、超时、对账）。
 `/admin/*` 是测试专用接口，生产系统不应暴露。
+
+## 相关项目
+
+- [rag-qa-evaluation](https://github.com/wcxhm/rag-qa-evaluation) —— 企业知识库 RAG 问答 Agent 的输出质量评测与鲁棒性验证（48 题评测集、拒答阈值扫描、OOV 漏拒答缺陷排查）
